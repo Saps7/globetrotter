@@ -64,6 +64,7 @@ function Quiz({ setScore }) {
             clue: randomClue,
             correctAnswer: destination.city,
             funFact: destination.fun_fact[0],
+            trivia: destination.trivia[0],
             options: shuffleArray([
                 destination.city,
                 ...allDestinations
@@ -136,6 +137,7 @@ function Quiz({ setScore }) {
                     <FeedbackModal
                         isCorrect={isCorrect}
                         funFact={currentQuestion.funFact}
+                        trivia={currentQuestion.trivia}
                         onNext={() => {
                             setShowFeedback(false);
                             loadNewQuestion();

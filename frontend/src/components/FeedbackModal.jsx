@@ -17,12 +17,12 @@ const Modal = styled(motion.div)`
 
   @media (max-width: 768px) {
     padding: 1.5rem;
-    width: 90%;
+    width: 500px;
   }
 
   @media (max-width: 480px) {
     padding: 1rem;
-    width: 95%;
+    width: 300px;
   }
 `;
 
@@ -57,7 +57,7 @@ const NextButton = styled(motion.button)`
   cursor: pointer;
 `;
 
-function FeedbackModal({ isCorrect, funFact, onNext }) {
+function FeedbackModal({ isCorrect, funFact, trivia, onNext }) {
   const handleOverlayClick = (e) => {
     if (e.target === e.currentTarget) {
       onNext();
@@ -92,7 +92,7 @@ function FeedbackModal({ isCorrect, funFact, onNext }) {
           {isCorrect ? "🎉" : "😢"}
         </motion.div>
         <h2>{isCorrect ? "Correct!" : "Not quite..."}</h2>
-        <p>{funFact}</p>
+        <p>{isCorrect ? funFact : trivia}</p>
         <NextButton
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
