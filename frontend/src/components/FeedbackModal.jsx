@@ -4,8 +4,7 @@ import Confetti from 'react-confetti';
 
 const Modal = styled(motion.div)`
   position: fixed;
-  top: 50%;
-  left: 50%;
+  top: 30%;
   transform: translate(-50%, -50%);
   background: white;
   padding: 2rem;
@@ -14,6 +13,19 @@ const Modal = styled(motion.div)`
   text-align: center;
   max-width: 500px;
   width: 90%;
+  margin: 0 auto;
+  z-index: 1000;
+`;
+
+// Add an overlay to dim the background
+const Overlay = styled(motion.div)`
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 999;
 `;
 
 const NextButton = styled(motion.button)`
@@ -30,6 +42,11 @@ function FeedbackModal({ isCorrect, funFact, onNext }) {
   return (
     <>
       {isCorrect && <Confetti recycle={false} numberOfPieces={200} />}
+      <Overlay
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+      />
       <Modal
         initial={{ scale: 0.5, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}

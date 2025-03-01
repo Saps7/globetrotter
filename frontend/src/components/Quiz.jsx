@@ -3,7 +3,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import styled from '@emotion/styled';
 import Question from './Question';
 import FeedbackModal from './FeedbackModal';
-import data from '../data/data.json';
 import { shuffleArray } from '../utils/shuffleArray';
 
 const QuizContainer = styled(motion.div)`
@@ -18,27 +17,65 @@ function Quiz({ setScore }) {
     const [showFeedback, setShowFeedback] = useState(false);
     const [isCorrect, setIsCorrect] = useState(false);
     const [selectedDestination, setSelectedDestination] = useState(null);
+    const [allDestinations, setAllDestinations] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
 
-    const getRandomDestination = () => {
-        const randomIndex = Math.floor(Math.random() * data.length);
-        return data[randomIndex];
+    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
+    // Fetch all destinations on component mount
+    useEffect(() => {
+        const fetchDestinations = async () => {
+            try {
+                const response = await fetch(`${API_BASE_URL}/destinations`);
+                if (!response.ok) throw new Error('Failed to fetch destinations');
+                const data = await response.json();
+                setAllDestinations(data);
+                setLoading(false);
+            } catch (err) {
+                setError(err.message);
+                setLoading(false);
+            }
+        };
+        fetchDestinations();
+    }, []);
+
+    const getRandomDestination = async () => {
+        try {
+            const response = await fetch(`${API_BASE_URL}/destinations/random`);
+            if (!response.ok) throw new Error('Failed to fetch random destination');
+            return await response.json();
+        } catch (err) {
+            setError(err.message);
+            return null;
+        }
     };
 
-    const loadNewQuestion = () => {
-        const destination = getRandomDestination();
-        const randomClue = destination.clues[Math.floor(Math.random() * destination.clues.length)];
+    const loadNewQuestion = async () => {
+        const destination = await getRandomDestination();
+        if (!destination) return;
 
+        const randomClue = destination.clues[Math.floor(Math.random() * destination.clues.length)];
+        
         setCurrentQuestion({
             clue: randomClue,
             correctAnswer: destination.city,
             funFact: destination.fun_fact[0],
-            options: shuffleArray([...new Set(data.map(d => d.city))])
+            options: shuffleArray([
+                destination.city,
+                ...allDestinations
+                    .filter(d => d.city !== destination.city)
+                    .map(d => d.city)
+                    .slice(0, 3)
+            ])
         });
     };
 
     useEffect(() => {
-        loadNewQuestion();
-    }, []);
+        if (!loading && allDestinations.length > 0) {
+            loadNewQuestion();
+        }
+    }, [loading, allDestinations]);
 
     const handleAnswer = (answer) => {
         setSelectedDestination(answer);
@@ -50,6 +87,32 @@ function Quiz({ setScore }) {
             total: prev.total + 1
         }));
     };
+
+    if (loading) {
+        return (
+            <QuizContainer>
+                <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                >
+                    Loading quiz...
+                </motion.div>
+            </QuizContainer>
+        );
+    }
+
+    if (error) {
+        return (
+            <QuizContainer>
+                <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                >
+                    Error: {error}
+                </motion.div>
+            </QuizContainer>
+        );
+    }
 
     return (
         <QuizContainer

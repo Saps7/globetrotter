@@ -4,13 +4,13 @@ import Quiz from './components/Quiz';
 import Score from './components/Score';
 import styled from '@emotion/styled';
 
-const AppContainer = styled.div`
-  width: 100%;
-  padding: 2rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-`;
+// const AppContainer = styled.div`
+//   width: 100%;
+//   padding: 2rem;
+//   display: flex;
+//   align-items: center;
+//   justify-content: center;
+// `;
 
 const ContentWrapper = styled.div`
   width: 100%;
@@ -35,7 +35,7 @@ function App() {
   const [score, setScore] = useState({ correct: 0, total: 0 });
 
   return (
-    <AppContainer>
+    // <AppContainer>
       <ContentWrapper>
         <Title
           initial={{ y: -20, opacity: 0 }}
@@ -47,7 +47,7 @@ function App() {
         <Score score={score} />
         <Quiz setScore={setScore} />
       </ContentWrapper>
-    </AppContainer>
+    // </AppContainer>
   );
 }
 
