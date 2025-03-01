@@ -6,14 +6,15 @@ const ScoreContainer = styled(motion.div)`
   font-size: 1.25rem;
 `;
 
-function Score({ score }) {
+function Score({ score, username }) {
   return (
     <ScoreContainer
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ delay: 0.5 }}
     >
-      Score: {score.correct}/{score.total}
+      {username && <p>Player: {username}</p>}
+      <p>Score: {score.correct}/{score.total}</p>
     </ScoreContainer>
   );
 }

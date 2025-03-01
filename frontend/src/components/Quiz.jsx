@@ -6,6 +6,9 @@ import FeedbackModal from './FeedbackModal';
 import { shuffleArray } from '../utils/shuffleArray';
 
 const QuizContainer = styled(motion.div)`
+    width: 80%;
+    max-width: 800px;
+    margin: 0;
     background: white;
     padding: 2rem;
     border-radius: 1rem;

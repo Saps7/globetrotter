@@ -1,14 +1,13 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import Quiz from './components/Quiz';
 import Score from './components/Score';
+import UserRegistration from './components/UserRegistration';
+import ShareButton from './components/ShareButton';
 import styled from '@emotion/styled';
 
 const AppContainer = styled.div`
-  // min-height: 100vh;
-  // width: 100%;
   overflow-x: hidden;
-  padding: 2rem;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -23,10 +22,15 @@ const ContentWrapper = styled.div`
   justify-content: center;
   gap: 2rem;
   background: rgba(255, 255, 255, 0.9);
-  padding: 2rem;
+  padding: 2rem 0;
   border-radius: 1rem;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   margin: 0 auto;
+
+    @media (max-width: 768px) {
+      padding: 1rem;
+      width: 100%;
+    }
 `;
 
 const Title = styled(motion.h1)`
@@ -38,6 +42,15 @@ const Title = styled(motion.h1)`
 
 function App() {
   const [score, setScore] = useState({ correct: 0, total: 0 });
+  const [user, setUser] = useState(null);
+  const [inviterId, setInviterId] = useState(null);
+
+  useEffect(() => {
+    // Check for inviter's ID in URL params
+    const params = new URLSearchParams(window.location.search);
+    const id = params.get('inviterId');
+    if (id) setInviterId(id);
+  }, []);
 
   return (
     <AppContainer>
@@ -49,8 +62,16 @@ function App() {
         >
           🌍 Globetrotter Quiz
         </Title>
-        <Score score={score} />
-        <Quiz setScore={setScore} />
+        
+        {!user ? (
+          <UserRegistration setUser={setUser} inviterId={inviterId} />
+        ) : (
+          <>
+            <Score score={score} username={user.username} />
+            <Quiz setScore={setScore} />
+            <ShareButton user={user} score={score} />
+          </>
+        )}
       </ContentWrapper>
     </AppContainer>
   );

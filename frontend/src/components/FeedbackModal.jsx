@@ -13,8 +13,17 @@ const Modal = styled(motion.div)`
   text-align: center;
   max-width: 500px;
   width: 100%;
-  margin: 0 auto;
-  z-index: 1002; // Increased z-index to be above confetti
+  z-index: 1002;
+
+  @media (max-width: 768px) {
+    padding: 1.5rem;
+    width: 90%;
+  }
+
+  @media (max-width: 480px) {
+    padding: 1rem;
+    width: 95%;
+  }
 `;
 
 const ConfettiWrapper = styled.div`
@@ -49,17 +58,23 @@ const NextButton = styled(motion.button)`
 `;
 
 function FeedbackModal({ isCorrect, funFact, onNext }) {
+  const handleOverlayClick = (e) => {
+    if (e.target === e.currentTarget) {
+      onNext();
+    }
+  };
   return (
     <>
       <Overlay
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
+        onClick={handleOverlayClick}
       />
       {isCorrect && (
         <ConfettiWrapper>
-          <Confetti 
-            recycle={false} 
+          <Confetti
+            recycle={false}
             numberOfPieces={200}
           />
         </ConfettiWrapper>
