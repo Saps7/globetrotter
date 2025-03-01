@@ -13,9 +13,13 @@ const Clue = styled(motion.p)`
 
 const OptionsGrid = styled.div`
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  grid-template-columns: repeat(2, 1fr); // Changed to always show 2 columns
   gap: 1rem;
   margin-top: 2rem;
+  width: 100%; // Ensure full width
+  max-width: 600px; // Limit maximum width for better readability
+  margin-left: auto;
+  margin-right: auto;
 `;
 
 const Option = styled(motion.button)`
@@ -25,6 +29,7 @@ const Option = styled(motion.button)`
   background: white;
   cursor: pointer;
   transition: all 0.2s;
+  width: 100%; // Ensure buttons take full width of their grid cell
 
   &:hover {
     background: #e2e8f0;
