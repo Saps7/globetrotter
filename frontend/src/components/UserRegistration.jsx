@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import styled from '@emotion/styled';
 import { motion } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 
 const Form = styled(motion.form)`
   display: flex;
@@ -30,6 +31,7 @@ const Button = styled(motion.button)`
 function UserRegistration({ setUser, inviterId }) {
   const [username, setUsername] = useState('');
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -42,9 +44,11 @@ function UserRegistration({ setUser, inviterId }) {
         body: JSON.stringify({ username, inviterId })
       });
       
-      const data = await response.json();
+      const userData = await response.json();
       if (response.ok) {
-        setUser(data);
+        setUser(userData);
+        // Update URL with user ID
+        navigate(`/?userId=${userData._id}`, { replace: true });
       }
     } catch (error) {
       console.error('Registration error:', error);

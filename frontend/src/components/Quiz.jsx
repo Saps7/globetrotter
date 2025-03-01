@@ -15,7 +15,7 @@ const QuizContainer = styled(motion.div)`
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 `;
 
-function Quiz({ setScore }) {
+function Quiz({ score, setScore, onComplete, isCompleted, setShowCompletionModal }) {
     const [currentQuestion, setCurrentQuestion] = useState(null);
     const [showFeedback, setShowFeedback] = useState(false);
     const [isCorrect, setIsCorrect] = useState(false);
@@ -23,8 +23,10 @@ function Quiz({ setScore }) {
     const [allDestinations, setAllDestinations] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [isLastQuestion, setIsLastQuestion] = useState(false);
 
     const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+    const QUESTIONS_LIMIT = 5;
 
     // Fetch all destinations on component mount
     useEffect(() => {
@@ -81,15 +83,40 @@ function Quiz({ setScore }) {
         }
     }, [loading, allDestinations]);
 
+    useEffect(() => {
+        if (score.total === QUESTIONS_LIMIT && !isCompleted) {
+            onComplete(score);
+        }
+    }, [score, isCompleted]);
+
     const handleAnswer = (answer) => {
+        if (isCompleted) return;
+
         setSelectedDestination(answer);
         const correct = answer === currentQuestion.correctAnswer;
         setIsCorrect(correct);
         setShowFeedback(true);
-        setScore(prev => ({
-            correct: prev.correct + (correct ? 1 : 0),
-            total: prev.total + 1
-        }));
+        
+        const newScore = {
+            correct: score.correct + (correct ? 1 : 0),
+            total: score.total + 1
+        };
+        setScore(newScore);
+
+        // Check if this is the last question
+        setIsLastQuestion(newScore.total === QUESTIONS_LIMIT);
+    };
+
+    const handleFeedbackClose = () => {
+        setShowFeedback(false);
+        
+        if (isLastQuestion) {
+            // Only call onComplete after closing the last feedback modal
+            onComplete(score);
+            setShowCompletionModal(true);
+        } else {
+            loadNewQuestion();
+        }
     };
 
     if (loading) {
@@ -138,10 +165,7 @@ function Quiz({ setScore }) {
                         isCorrect={isCorrect}
                         funFact={currentQuestion.funFact}
                         trivia={currentQuestion.trivia}
-                        onNext={() => {
-                            setShowFeedback(false);
-                            loadNewQuestion();
-                        }}
+                        onNext={handleFeedbackClose}
                     />
                 )}
             </AnimatePresence>

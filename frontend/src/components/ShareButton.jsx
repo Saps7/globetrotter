@@ -4,7 +4,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import html2canvas from 'html2canvas';
 
 const ShareContainer = styled.div`
-  margin-top: 2rem;
   text-align: center;
 `;
 
@@ -52,7 +51,7 @@ const ShareUsername = styled.div`
   opacity: 0.9;
 `;
 
-function ShareButton({ user, score }) {
+function ShareButton({ user, score, disabled }) {
   const [sharing, setSharing] = useState(false);
 
   const generateShareImage = async () => {
@@ -62,21 +61,28 @@ function ShareButton({ user, score }) {
   };
 
   const handleShare = async () => {
+    if (disabled) {
+      alert('Please complete your 5 questions first!');
+      return;
+    }
+    
     setSharing(true);
     try {
-      const shareUrl = `${window.location.origin}?inviterId=${user.id}`;
+      // Use the MongoDB _id from user object
+      const shareUrl = `${window.location.origin}?inviterId=${user._id}`;
       const imageUrl = await generateShareImage();
 
       if (navigator.share) {
         await navigator.share({
           title: 'Challenge: Globetrotter Quiz',
-          text: `Can you beat ${user.username}'s score of ${score.correct}/${score.total}? Take the challenge!`,
+          text: `Can you beat ${user.username}'s score of ${score.correct}/${score.total}?`,
           url: shareUrl
         });
       } else {
-        // Fallback to WhatsApp share
         const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(
-          `🌍 Challenge: Globetrotter Quiz\n\nCan you beat ${user.username}'s score of ${score.correct}/${score.total}?\n\nTake the challenge: ${shareUrl}`
+          `🌍 Challenge: Globetrotter Quiz\n\n` +
+          `Can you beat ${user.username}'s score of ${score.correct}/${score.total}?\n\n` +
+          `Take the challenge: ${shareUrl}`
         )}`;
         window.open(whatsappUrl, '_blank');
       }
@@ -104,12 +110,18 @@ function ShareButton({ user, score }) {
       <ShareContainer>
         <ShareButtonStyled
           onClick={handleShare}
-          disabled={sharing}
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
+          disabled={disabled || sharing}
+          whileHover={{ scale: disabled ? 1 : 1.05 }}
+          whileTap={{ scale: disabled ? 1 : 0.95 }}
+          style={{ opacity: disabled ? 0.5 : 1 }}
         >
           {sharing ? 'Sharing...' : '🎮 Challenge a Friend'}
         </ShareButtonStyled>
+        {disabled && (
+          <small style={{ color: '#666', marginTop: '0.5rem' }}>
+            Complete 5 questions to challenge friends
+          </small>
+        )}
       </ShareContainer>
     </>
   );
