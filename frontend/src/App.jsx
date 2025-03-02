@@ -75,11 +75,23 @@ function App() {
   const [inviterId, setInviterId] = useState(null);
   const [quizCompleted, setQuizCompleted] = useState(false);
   const [showCompletionModal, setShowCompletionModal] = useState(false);
+  const [inviterData, setInviterData] = useState(null);
 
   useEffect(() => {
     // Check for inviter's ID in URL params
     const id = searchParams.get('inviterId');
-    if (id) setInviterId(id);
+    if (id) {
+      setInviterId(id);
+      // Fetch inviter's data
+      fetch(`${import.meta.env.VITE_API_BASE_URL}/users/${id}`)
+        .then(res => res.json())
+        .then(data => {
+          if (data) {
+            setInviterData(data);
+          }
+        })
+        .catch(err => console.error('Error fetching inviter data:', err));
+    }
 
     // Check for user's ID in URL params
     const userId = searchParams.get('userId');
@@ -134,7 +146,11 @@ function App() {
         </Title>
         
         {!user ? (
-          <UserRegistration setUser={setUser} inviterId={inviterId} />
+          <UserRegistration 
+            setUser={setUser} 
+            inviterId={inviterId}
+            inviterData={inviterData} // Pass inviter data
+          />
         ) : (
           <>
             <Score 
@@ -171,6 +187,7 @@ function App() {
         <CompletionModal
           score={score}
           onClose={() => setShowCompletionModal(false)}
+          inviterScore={inviterData}
         />
       )}
     </AppContainer>

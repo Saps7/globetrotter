@@ -15,6 +15,28 @@ const QuizContainer = styled(motion.div)`
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 `;
 
+const LoadingOverlay = styled(motion.div)`
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 1rem;
+  z-index: 10;
+`;
+
+const LoadingSpinner = styled(motion.div)`
+  width: 40px;
+  height: 40px;
+  border: 3px solid #e2e8f0;
+  border-top: 3px solid #4299e1;
+  border-radius: 50%;
+`;
+
 function Quiz({ score, setScore, onComplete, isCompleted, setShowCompletionModal }) {
     const [currentQuestion, setCurrentQuestion] = useState(null);
     const [showFeedback, setShowFeedback] = useState(false);
@@ -24,6 +46,7 @@ function Quiz({ score, setScore, onComplete, isCompleted, setShowCompletionModal
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [isLastQuestion, setIsLastQuestion] = useState(false);
+    const [isLoadingQuestion, setIsLoadingQuestion] = useState(false);
 
     const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
     const QUESTIONS_LIMIT = 5;
@@ -57,24 +80,33 @@ function Quiz({ score, setScore, onComplete, isCompleted, setShowCompletionModal
     };
 
     const loadNewQuestion = async () => {
+        setIsLoadingQuestion(true);
         const destination = await getRandomDestination();
-        if (!destination) return;
+        if (!destination) {
+            setIsLoadingQuestion(false);
+            return;
+        }
 
         const randomClue = destination.clues[Math.floor(Math.random() * destination.clues.length)];
-        
-        setCurrentQuestion({
-            clue: randomClue,
-            correctAnswer: destination.city,
-            funFact: destination.fun_fact[0],
-            trivia: destination.trivia[0],
-            options: shuffleArray([
-                destination.city,
-                ...allDestinations
-                    .filter(d => d.city !== destination.city)
-                    .map(d => d.city)
-                    .slice(0, 3)
-            ])
-        });
+        const options = shuffleArray([
+            destination.city,
+            ...allDestinations
+                .filter(d => d.city !== destination.city)
+                .map(d => d.city)
+                .slice(0, 3)
+        ]);
+
+        // Use setTimeout to ensure smooth transition
+        setTimeout(() => {
+            setCurrentQuestion({
+                clue: randomClue,
+                correctAnswer: destination.city,
+                funFact: destination.fun_fact[0],
+                trivia: destination.trivia[0],
+                options
+            });
+            setIsLoadingQuestion(false);
+        }, 500);
     };
 
     useEffect(() => {
@@ -150,14 +182,35 @@ function Quiz({ score, setScore, onComplete, isCompleted, setShowCompletionModal
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ duration: 0.3 }}
+            style={{ position: 'relative' }}
         >
             {currentQuestion && (
-                <Question
-                    clue={currentQuestion.clue}
-                    options={currentQuestion.options}
-                    onAnswer={handleAnswer}
-                    disabled={showFeedback}
-                />
+                <>
+                    <AnimatePresence>
+                        {isLoadingQuestion && (
+                            <LoadingOverlay
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                exit={{ opacity: 0 }}
+                            >
+                                <LoadingSpinner
+                                    animate={{ rotate: 360 }}
+                                    transition={{
+                                        duration: 1,
+                                        repeat: Infinity,
+                                        ease: "linear"
+                                    }}
+                                />
+                            </LoadingOverlay>
+                        )}
+                    </AnimatePresence>
+                    <Question
+                        clue={currentQuestion.clue}
+                        options={currentQuestion.options}
+                        onAnswer={handleAnswer}
+                        disabled={showFeedback || isLoadingQuestion}
+                    />
+                </>
             )}
             <AnimatePresence>
                 {showFeedback && (

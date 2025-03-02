@@ -1,7 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import styled from '@emotion/styled';
 import { motion } from 'framer-motion';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 
 const Form = styled(motion.form)`
   display: flex;
@@ -77,12 +77,63 @@ const ErrorMessage = styled.div`
   margin-top: 0.5rem;
 `;
 
-function UserRegistration({ setUser, inviterId }) {
+const ChallengePopup = styled(motion.div)`
+  position: fixed;
+  top: 35%;
+  transform: translate(-50%, -50%);
+  background: white;
+  padding: 2rem;
+  border-radius: 1rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  max-width: 500px;
+  width: 100%;
+  z-index: 1002;
+
+  @media (max-width: 768px) {
+    padding: 1.5rem;
+    width: 500px;
+  }
+
+  @media (max-width: 480px) {
+    padding: 1rem;
+    width: 300px;
+  }
+`;
+
+const Overlay = styled(motion.div)`
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 1001;
+  backdrop-filter: blur(4px);
+`;
+
+const ChallengeScore = styled.div`
+  font-size: 3rem;
+  font-weight: bold;
+  color: #4299e1;
+  margin: 1rem 0;
+`;
+
+function UserRegistration({ setUser, inviterId, inviterData }) {
+  const [searchParams] = useSearchParams();
   const [username, setUsername] = useState('');
   const [loading, setLoading] = useState(false);
   const [isLogin, setIsLogin] = useState(true);
   const [error, setError] = useState('');
+  const [showChallenge, setShowChallenge] = useState(false);
   const navigate = useNavigate();
+
+  // Remove the inviterScore fetch since we're getting it from props
+  useEffect(() => {
+    if (inviterData) {
+      setShowChallenge(true);
+    }
+  }, [inviterData]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -104,7 +155,12 @@ function UserRegistration({ setUser, inviterId }) {
       }
 
       setUser(data);
-      navigate(`/?userId=${data._id}`, { replace: true });
+      
+      // Preserve existing query parameters and add userId
+      const newParams = new URLSearchParams(searchParams);
+      newParams.set('userId', data._id);
+      navigate(`/?${newParams.toString()}`, { replace: true });
+      
     } catch (error) {
       setError(error.message);
     } finally {
@@ -113,45 +169,74 @@ function UserRegistration({ setUser, inviterId }) {
   };
 
   return (
-    <FormContainer>
-      <ToggleContainer>
-        <ToggleButton
-          active={isLogin}
-          onClick={() => setIsLogin(true)}
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-        >
-          Login
-        </ToggleButton>
-        <ToggleButton
-          active={!isLogin}
-          onClick={() => setIsLogin(false)}
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-        >
-          Sign Up
-        </ToggleButton>
-      </ToggleContainer>
+    <>
+      <FormContainer>
+        <ToggleContainer>
+          <ToggleButton
+            active={isLogin}
+            onClick={() => setIsLogin(true)}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            Login
+          </ToggleButton>
+          <ToggleButton
+            active={!isLogin}
+            onClick={() => setIsLogin(false)}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            Sign Up
+          </ToggleButton>
+        </ToggleContainer>
 
-      <Form onSubmit={handleSubmit}>
-        <Input
-          type="text"
-          placeholder="Enter your username"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-          required
-        />
-        {error && <ErrorMessage>{error}</ErrorMessage>}
-        <Button
-          type="submit"
-          disabled={loading}
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-        >
-          {loading ? 'Loading...' : isLogin ? 'Login' : 'Sign Up'}
-        </Button>
-      </Form>
-    </FormContainer>
+        <Form onSubmit={handleSubmit}>
+          <Input
+            type="text"
+            placeholder="Enter your username"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            required
+          />
+          {error && <ErrorMessage>{error}</ErrorMessage>}
+          <Button
+            type="submit"
+            disabled={loading}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            {loading ? 'Loading...' : isLogin ? 'Login' : 'Sign Up'}
+          </Button>
+        </Form>
+      </FormContainer>
+
+      {showChallenge && inviterData && (
+        <>
+          <Overlay
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            onClick={() => setShowChallenge(false)}
+          />
+          <ChallengePopup
+            initial={{ scale: 0.5, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+          >
+            <h2>🏆 Score Challenge!</h2>
+            <p>Can you beat {inviterData.username}'s score?</p>
+            <ChallengeScore>
+              {inviterData.score.correct}/{inviterData.score.total}
+            </ChallengeScore>
+            <Button
+              onClick={() => setShowChallenge(false)}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              Accept Challenge
+            </Button>
+          </ChallengePopup>
+        </>
+      )}
+    </>
   );
 }
 
