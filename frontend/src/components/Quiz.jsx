@@ -81,32 +81,44 @@ function Quiz({ score, setScore, onComplete, isCompleted, setShowCompletionModal
 
     const loadNewQuestion = async () => {
         setIsLoadingQuestion(true);
-        const destination = await getRandomDestination();
-        if (!destination) {
-            setIsLoadingQuestion(false);
-            return;
-        }
+        try {
+            // Get random destination and prepare options
+            const destination = await getRandomDestination();
+            if (!destination) {
+                setIsLoadingQuestion(false);
+                return;
+            }
 
-        const randomClue = destination.clues[Math.floor(Math.random() * destination.clues.length)];
-        const options = shuffleArray([
-            destination.city,
-            ...allDestinations
-                .filter(d => d.city !== destination.city)
-                .map(d => d.city)
-                .slice(0, 3)
-        ]);
+            // Pre-fetch all data before setting state
+            const randomClue = destination.clues[Math.floor(Math.random() * destination.clues.length)];
+            const wrongOptions = shuffleArray(
+                allDestinations
+                    .filter(d => d.city !== destination.city)
+                    .map(d => d.city)
+            ).slice(0, 3);
 
-        // Use setTimeout to ensure smooth transition
-        setTimeout(() => {
-            setCurrentQuestion({
+            // Prepare complete question object
+            const completeQuestion = {
                 clue: randomClue,
                 correctAnswer: destination.city,
                 funFact: destination.fun_fact[0],
                 trivia: destination.trivia[0],
-                options
-            });
+                options: shuffleArray([destination.city, ...wrongOptions])
+            };
+
+            // Force complete re-render by clearing current question first
+            setCurrentQuestion(null);
+            
+            // Use setTimeout to ensure state clear happens before setting new question
+            setTimeout(() => {
+                setCurrentQuestion(completeQuestion);
+                setIsLoadingQuestion(false);
+            }, 100);
+
+        } catch (error) {
+            setError(error.message);
             setIsLoadingQuestion(false);
-        }, 500);
+        }
     };
 
     useEffect(() => {
