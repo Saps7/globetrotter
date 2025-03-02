@@ -1,5 +1,6 @@
 import styled from '@emotion/styled';
 import { motion } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 
 const ScoreContainer = styled(motion.div)`
   background: white;
@@ -45,16 +46,58 @@ const ScoreValue = styled.div`
   }
 `;
 
+const ScoreHeader = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+`;
+
+const LogoutButton = styled(motion.button)`
+  background: transparent;
+  color: #718096;
+  border: none;
+  padding: 0.5rem;
+  cursor: pointer;
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  border-radius: 0.375rem;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: #EDF2F7;
+    color: #4A5568;
+  }
+`;
+
 function Score({ score, username, isCompleted }) {
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    // Remove userId from URL and redirect to registration
+    navigate('/', { replace: true });
+  };
+
   return (
     <ScoreContainer
       initial={{ y: -20, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ duration: 0.5 }}
     >
-      <PlayerName>
-        🎮 <span>{username}</span>
-      </PlayerName>
+      <ScoreHeader>
+        <PlayerName>
+          🎮 <span>{username}</span>
+        </PlayerName>
+        <LogoutButton
+          onClick={handleLogout}
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+        >
+          <span>👋</span> Logout
+        </LogoutButton>
+      </ScoreHeader>
       <ScoreLabel isCompleted={isCompleted}>
         {isCompleted ? 'Final Score' : 'Current Score'}
       </ScoreLabel>

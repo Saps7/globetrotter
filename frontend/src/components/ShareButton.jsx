@@ -5,10 +5,14 @@ import html2canvas from 'html2canvas';
 
 const ShareContainer = styled.div`
   text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
 `;
 
 const ShareButtonStyled = styled(motion.button)`
-  padding: 0.75rem 1.5rem;
+  padding: 0.85rem 2rem;
   background: #48bb78;
   color: white;
   border: none;
@@ -16,7 +20,21 @@ const ShareButtonStyled = styled(motion.button)`
   cursor: pointer;
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.75rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+  box-shadow: 0 4px 6px rgba(72, 187, 120, 0.2);
+  transition: all 0.2s ease;
+
+  &:hover:not(:disabled) {
+    background: #38a169;
+    box-shadow: 0 6px 8px rgba(72, 187, 120, 0.3);
+  }
+
+  &:disabled {
+    background: #9ca3af;
+    cursor: not-allowed;
+  }
 `;
 
 const ShareCard = styled.div`
@@ -49,6 +67,18 @@ const ShareScore = styled.div`
 const ShareUsername = styled.div`
   font-size: 1.5rem;
   opacity: 0.9;
+`;
+
+const DisabledMessage = styled(motion.div)`
+  color: #4b5563;
+  font-size: 0.9rem;
+  background: #f3f4f6;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  border: 1px solid #e5e7eb;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 `;
 
 function ShareButton({ user, score, disabled }) {
@@ -113,14 +143,22 @@ function ShareButton({ user, score, disabled }) {
           disabled={disabled || sharing}
           whileHover={{ scale: disabled ? 1 : 1.05 }}
           whileTap={{ scale: disabled ? 1 : 0.95 }}
-          style={{ opacity: disabled ? 0.5 : 1 }}
         >
-          {sharing ? 'Sharing...' : '🎮 Challenge a Friend'}
+          {sharing ? (
+            <>⏳ Sharing...</>
+          ) : (
+            <>🎮 Challenge a Friend</>
+          )}
         </ShareButtonStyled>
+        
         {disabled && (
-          <small style={{ color: '#666', marginTop: '0.5rem' }}>
-            Complete 5 questions to challenge friends
-          </small>
+          <DisabledMessage
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.2 }}
+          >
+            <span>⚡</span> Complete the quiz (5 questions) to unlock
+          </DisabledMessage>
         )}
       </ShareContainer>
     </>
