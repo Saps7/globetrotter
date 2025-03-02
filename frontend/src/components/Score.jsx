@@ -78,6 +78,8 @@ function Score({ score, username, isCompleted }) {
   const handleLogout = () => {
     // Remove userId from URL and redirect to registration
     navigate('/', { replace: true });
+    // Force a page reload to reset all states
+    window.location.reload();
   };
 
   return (
